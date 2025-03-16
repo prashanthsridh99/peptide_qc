@@ -1,0 +1,26 @@
+input_csv_file: "data/input.csv"
+raw_file_location: "/data/Prashanth/raw_file_substrate"
+raw_file_name: "HRoetschke_020124_020124_Lu_TSN200_40uM.raw"
+raw_file_type: "individual"
+
+TIC_Plotting:
+  tic_result_file: "/data/Prashanth/TICs_new.tsv"
+  tic_log_file: "data/Prashanth/log_unused.txt"
+  tic_plot_file: "/data/Prashanth/TIC_plots.pdf"
+
+
+MSFraggerPart:
+  Qualuty_Filter_type: "q_value"  # or "engine_score"
+  q_value_cutoff: 0.01 #(< specified value. default value =  0.01)
+  engine_score_cutoff: 10 #(> specified value. defualt value = 10)
+  MSFraggerFunctionIuputs:
+    fragger_params: "/data/Prashanth/peptide_qc_files/fragger_template.params"
+    raw_file_folder: "/data/Prashanth/peptide_qc" #(variable/user input)
+    output_folder: "/data/Prashanth/peptide_qc_files" #(variable/user input)
+    proteome: "/data/Prashanth/input.fasta" #(variable/ use input)
+    fragger_path: "/data/Prashanth/MSFragger-4.1/MSFragger-4.1.jar"
+    contams_db: "/data/Prashanth/contaminants_20120713.fasta"
+
+XIC_Plotting:
+  xic_result_file: "/data/Prashanth/XICs_new.tsv"
+  RT_Cuttoff: 60 #(<= specified value. Default Value = 60)
