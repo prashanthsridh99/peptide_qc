@@ -82,6 +82,21 @@ def load_config(config_path):
         config = yaml.safe_load(file)
     return config
 
+def run_msfragger_script(fragger_params, raw_file_folder, output_folder, proteome, fragger_path, contams_db):
+    command = [
+        "python3", "msfragger.py",
+        "--fragger_params", fragger_params,
+        "--raw_file_folder", raw_file_folder,
+        "--output_folder", output_folder,
+        "--proteome", proteome,
+        "--fragger_path", fragger_path,
+        "--contams_db", contams_db
+    ]
+    try:
+        subprocess.run(command, check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"MSFragger script failed with error: {e}")
+
 def main():
     parser = argparse.ArgumentParser(description="Process configuration for MSFragger and XIC Plotting.")
     parser.add_argument(
@@ -114,11 +129,20 @@ def main():
     quality_filter = msfragger_part.get("Qualuty_Filter_type")
     q_value_cutoff = msfragger_part.get("q_value_cutoff", 0.01)
     engine_score_cutoff = msfragger_part.get("engine_score_cutoff", 10)
-    fragger_inputs = msfragger_part.get("MSFraggerFunctionIuputs", {})
+    msfragger_inputs = msfragger_part.get("MSFraggerFunctionInputs", {})
+    fragger_params = msfragger_inputs.get("fragger_params")
+    raw_file_folder = msfragger_inputs.get("raw_file_folder")
+    output_folder = msfragger_inputs.get("output_folder")
+    proteome = msfragger_inputs.get("proteome")
+    fragger_path = msfragger_inputs.get("fragger_path")
+    contams_db = msfragger_inputs.get("contams_db")
+
 
     xic_plotting = config.get("XIC_Plotting", {})
     xic_result_file = xic_plotting.get("xic_result_file")
     rt_cutoff = xic_plotting.get("RT_Cuttoff", 60)
+    
+    
 
     # Print extracted values
     print(f"Input CSV File: {input_csv}")
@@ -131,12 +155,19 @@ def main():
     print(f"MSFragger Quality Filter Type: {quality_filter}")
     print(f"Q Value Cutoff: {q_value_cutoff}")
     print(f"Engine Score Cutoff: {engine_score_cutoff}")
-    print(f"MSFragger Params: {fragger_inputs}")
+    print(f"fragger_params: {fragger_params}")
+    print(f"Raw File Folder: {raw_file_folder}")
+    print(f"Output Folder: {output_folder}")
+    print(f"Proteome: {proteome}")
+    print(f"Fragger Path: {fragger_path}")
+    print(f"Contaminants Database: {contams_db}")
+    print(f"XIC Plotting Result File: {xic_result_file}")
     print(f"XIC Plotting RT Cutoff: {rt_cutoff}")
     print(f"XIC Result File: {xic_result_file}")
 
-    run_skyline_script(raw_file_location, raw_file_name, tic_result_file, tic_log_file)
-    plot_tic_chromatograms(tic_result_file, tic_plot_file, raw_file_name)
+    #run_skyline_script(raw_file_location, raw_file_name, tic_result_file, tic_log_file)
+    #plot_tic_chromatograms(tic_result_file, tic_plot_file, raw_file_name)
+    run_msfragger_script(fragger_params,raw_file_folder, output_folder, proteome, fragger_path, contams_db)
 
 if __name__ == "__main__":
     main()

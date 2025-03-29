@@ -13,13 +13,13 @@ MSFraggerPart:
   Qualuty_Filter_type: "q_value"  # or "engine_score"
   q_value_cutoff: 0.01 #(< specified value. default value =  0.01)
   engine_score_cutoff: 10 #(> specified value. defualt value = 10)
-  MSFraggerFunctionIuputs:
+  MSFraggerFunctionInputs:
     fragger_params: "/data/Prashanth/peptide_qc_files/fragger_template.params"
     raw_file_folder: "/data/Prashanth/peptide_qc" #(variable/user input)
-    output_folder: "/data/Prashanth/peptide_qc_files" #(variable/user input)
-    proteome: "/data/Prashanth/input.fasta" #(variable/ use input)
-    fragger_path: "/data/Prashanth/MSFragger-4.1/MSFragger-4.1.jar"
-    contams_db: "/data/Prashanth/contaminants_20120713.fasta"
+    output_folder: "/data/Prashanth/peptide_qc_files_output" #(variable/user input)
+    proteome: "/data/Prashanth/peptide_qc_files/input_new.fasta" #(variable/ use input)
+    fragger_path: "/data/Prashanth/MSFragger-4.1/MSFragger-4.1.jar" #(Java Archive file containg MSFragger-4 application)
+    contams_db: "/data/Prashanth/contaminants_20120713.fasta" #(contaminants fasta file)
 
 XIC_Plotting:
   xic_result_file: "/data/Prashanth/XICs_new.tsv"
