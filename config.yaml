@@ -1,6 +1,6 @@
-input_csv_file: "data/input.csv"
+input_csv_file: "/data/input.csv"
 raw_file_location: "/data/Prashanth/raw_file_substrate"
-raw_file_name: "HRoetschke_020124_020124_Lu_TSN200_40uM.raw"
+raw_file_name: "WSoh_260722_260722_Goe_TSN140_190_10pmol_R1.raw"
 raw_file_type: "individual"
 
 TIC_Plotting:

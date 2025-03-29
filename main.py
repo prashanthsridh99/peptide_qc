@@ -97,6 +97,22 @@ def run_msfragger_script(fragger_params, raw_file_folder, output_folder, proteom
     except subprocess.CalledProcessError as e:
         print(f"MSFragger script failed with error: {e}")
 
+def read_process_msfragger_results(raw_file_folder, input_csv, raw_file_name, quality_filter, q_value_cutoff, engine_score_cutoff):
+    command = [
+        "python3", "read_process_msfragger_results.py",
+        "--raw_file_folder", raw_file_folder,
+        "--input_csv_file", input_csv,
+        "--raw_file_name", raw_file_name,
+        "--quality_filter", quality_filter,
+        "--q_value_cutoff", str(q_value_cutoff),
+        "--engine_score_cutoff", str(engine_score_cutoff)
+    ]
+    try:    
+        subprocess.run(command, check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Error in processing MSFragger results: {e}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Process configuration for MSFragger and XIC Plotting.")
     parser.add_argument(
@@ -167,7 +183,8 @@ def main():
 
     #run_skyline_script(raw_file_location, raw_file_name, tic_result_file, tic_log_file)
     #plot_tic_chromatograms(tic_result_file, tic_plot_file, raw_file_name)
-    run_msfragger_script(fragger_params,raw_file_folder, output_folder, proteome, fragger_path, contams_db)
+    #run_msfragger_script(fragger_params,raw_file_folder, output_folder, proteome, fragger_path, contams_db)
+    read_process_msfragger_results(raw_file_folder, input_csv, raw_file_name, quality_filter, q_value_cutoff, engine_score_cutoff)
 
 if __name__ == "__main__":
     main()
