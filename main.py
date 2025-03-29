@@ -183,7 +183,7 @@ def main():
 
     #run_skyline_script(raw_file_location, raw_file_name, tic_result_file, tic_log_file)
     #plot_tic_chromatograms(tic_result_file, tic_plot_file, raw_file_name)
-    #run_msfragger_script(fragger_params,raw_file_folder, output_folder, proteome, fragger_path, contams_db)
+    run_msfragger_script(fragger_params,raw_file_folder, output_folder, proteome, fragger_path, contams_db)
     read_process_msfragger_results(raw_file_folder, input_csv, raw_file_name, quality_filter, q_value_cutoff, engine_score_cutoff)
 
 if __name__ == "__main__":

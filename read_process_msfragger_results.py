@@ -7,6 +7,7 @@ import multiprocessing
 import pandas as pd
 import polars as pl
 from pyteomics import pepxml
+import csv
 
 
 ACCESSION_KEY = "proteins"
@@ -452,7 +453,33 @@ def main():
     print(f"Saved hits DataFrame to: {hits_csv_file}")
     print(f"Saved modifications DataFrame to: {mods_csv_file}")
     
-    
+    # Read the peptide IDs from the input CSV file
+    with open(input_csv, 'r') as csv_file:
+        reader = csv.reader(csv_file)
+        peptide_ids = {row[0] for row in reader}
+
+    filtered_hits_df = None
+    # Apply quality filter based on the specified criteria
+    if quality_filter == "q_value":
+        filtered_hits_df = hits_df[
+            (hits_df['q-value'] < q_value_cutoff) 
+            & (hits_df['Label'] == 1) 
+            & (hits_df['proteins'].isin(peptide_ids))
+        ]
+    elif quality_filter == "engine_score":
+        filtered_hits_df = hits_df[
+            (hits_df['engineScore'] > engine_score_cutoff) 
+            & (hits_df['Label'] == 1) 
+            & (hits_df['proteins'].isin(peptide_ids))
+        ]
+    else:
+        raise ValueError("Invalid quality filter specified. Use 'q_value' or 'engine_score'.")
+
+    # Save the filtered hits DataFrame as a CSV file
+    filtered_hits_csv_file = pep_xml_file.replace(".pepXML", "_filtered_hits.csv")
+    filtered_hits_df.to_csv(filtered_hits_csv_file, index=False)
+
+    print(f"Saved filtered hits DataFrame to: {filtered_hits_csv_file}")
     
 if __name__ == "__main__":
     main()
