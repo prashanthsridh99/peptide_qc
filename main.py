@@ -5,6 +5,66 @@ import subprocess
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from multiprocessing import Pool
+from pathlib import Path
+import platform
+
+
+def convert_raw_to_mgf(scans_folder, n_cores=4):
+    ENDC_TEXT = '\033[0m'
+    OKCYAN_TEXT = '\033[96m'
+    """
+    Converts RAW files to MGF format using ThermoRawFileParser.
+
+    Parameters
+    ----------
+    scans_folder : str
+        Path to the folder containing RAW files.
+    n_cores : int, optional
+        Number of CPU cores to use for parallel processing, default is 4.
+    """
+    # Ensure the input folder exists
+    if not os.path.isdir(scans_folder):
+        raise FileNotFoundError(f"The folder '{scans_folder}' does not exist.")
+
+    # Get the list of .raw files in the folder
+    raw_files = [
+        scan_f for scan_f in os.listdir(scans_folder) if scan_f.lower().endswith('.raw')
+    ]
+    print(
+        OKCYAN_TEXT + f'\tFound {len(raw_files)} RAW files to be converted.' + ENDC_TEXT
+    )
+
+    # Ensure ThermoRawFileParser is available
+    home = str(Path.home())
+    thermo_parser_dir = f'{home}/inSPIRE_models/ThermoRawFileParser'
+    thermo_path = f'{thermo_parser_dir}/ThermoRawFileParser.exe'
+
+    if not os.path.isfile(thermo_path):
+        print("ThermoRawFileParser not found. Downloading...")
+        download_thermo_raw_file_parser()
+
+    # Platform-specific prefix
+    prefix = ''
+    if platform.system() != 'Windows':
+        prefix = 'mono '
+
+    # Build commands for RAW to MGF conversion
+    convert_commands = [
+        f'{prefix}{thermo_path} -o={scans_folder} -f=0 -i={scans_folder}/{raw_file} -l 4'
+        for raw_file in raw_files if not os.path.exists(
+            f'{scans_folder}/{raw_file.replace(".raw", ".mgf")}'
+        )
+    ]
+
+    # Perform the conversions in parallel
+    if convert_commands:
+        print(OKCYAN_TEXT + "Starting RAW to MGF conversion..." + ENDC_TEXT)
+        with Pool(processes=n_cores) as pool:
+            pool.map(os.system, convert_commands)
+        print(OKCYAN_TEXT + "Conversion completed." + ENDC_TEXT)
+    else:
+        print(OKCYAN_TEXT + "No new files to convert." + ENDC_TEXT)
 
 def run_skyline_script(raw_file_location, raw_file_name, tic_result_file, tic_log_file):
     """
@@ -183,8 +243,9 @@ def main():
 
     #run_skyline_script(raw_file_location, raw_file_name, tic_result_file, tic_log_file)
     #plot_tic_chromatograms(tic_result_file, tic_plot_file, raw_file_name)
-    run_msfragger_script(fragger_params,raw_file_folder, output_folder, proteome, fragger_path, contams_db)
-    read_process_msfragger_results(raw_file_folder, input_csv, raw_file_name, quality_filter, q_value_cutoff, engine_score_cutoff)
+    #run_msfragger_script(fragger_params,raw_file_folder, output_folder, proteome, fragger_path, contams_db)
+    #read_process_msfragger_results(raw_file_folder, input_csv, raw_file_name, quality_filter, q_value_cutoff, engine_score_cutoff)
+    #convert_raw_to_mgf(raw_file_location)
 
 if __name__ == "__main__":
     main()
