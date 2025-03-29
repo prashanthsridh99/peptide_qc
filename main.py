@@ -172,6 +172,19 @@ def read_process_msfragger_results(raw_file_folder, input_csv, raw_file_name, qu
     except subprocess.CalledProcessError as e:
         print(f"Error in processing MSFragger results: {e}")
 
+def convert_raw_to_mzml(raw_file_location, raw_file_name):
+    command = [
+        "docker", "run", "-it", "--rm",
+        "-v", f"{raw_file_location}:/data",
+        "proteowizard/pwiz-skyline-i-agree-to-the-vendor-licenses",
+        "wine", "msconvert", f"/data/{raw_file_name}", "-o", "/data"
+    ]
+
+    try:
+        subprocess.run(command, check=True)
+        print(f"Successfully converted {raw_file_name} to mzML format.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred while converting RAW to mzML: {e}")
 
 def main():
     parser = argparse.ArgumentParser(description="Process configuration for MSFragger and XIC Plotting.")
@@ -246,6 +259,7 @@ def main():
     #run_msfragger_script(fragger_params,raw_file_folder, output_folder, proteome, fragger_path, contams_db)
     #read_process_msfragger_results(raw_file_folder, input_csv, raw_file_name, quality_filter, q_value_cutoff, engine_score_cutoff)
     #convert_raw_to_mgf(raw_file_location)
+    convert_raw_to_mzml(raw_file_location, raw_file_name)
 
 if __name__ == "__main__":
     main()
