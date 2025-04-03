@@ -10,6 +10,29 @@ from pathlib import Path
 import platform
 
 
+def create_ssl_data(raw_file_folder, raw_file_name):
+    raw_file = os.path.join(raw_file_folder, raw_file_name)
+    filtered_hits_csv_file = raw_file.replace(".raw", "_filtered_hits.csv")
+    filtered_hits_csv_file_docker_version = f"Z:{raw_file_folder.replace('/', '\\\\')}\\\\{raw_file_name}"
+    filtered_hits_df = pd.read_csv(filtered_hits_csv_file)
+    # Create ssl_df with required columns
+    ssl_df = pd.DataFrame({
+        "file": filtered_hits_csv_file_docker_version,
+        "scan": filtered_hits_df["scan"],
+        "charge": filtered_hits_df["charge"],
+        "sequence": filtered_hits_df["peptide"]
+    })
+
+    # Display top 5 rows and dimensions of ssl_df
+    ssl_df_head = ssl_df.head()
+    ssl_df_shape = ssl_df.shape
+
+    # Save ssl_df as a .ssl file
+    output_path = os.path.join(raw_file_folder, "ssl_output.ssl")
+    ssl_df.to_csv(output_path, sep="\t", index=False, header=True)
+    print(ssl_df_head)
+    print(ssl_df_shape)
+
 def convert_raw_to_mgf(scans_folder, n_cores=4):
     ENDC_TEXT = '\033[0m'
     OKCYAN_TEXT = '\033[96m'
@@ -286,8 +309,9 @@ def main():
     #read_process_msfragger_results(raw_file_folder, input_csv, raw_file_name, quality_filter, q_value_cutoff, engine_score_cutoff)
     #convert_raw_to_mgf(raw_file_folder)
     #convert_raw_to_mzml(raw_file_folder, raw_file_name)
-    plot_ms2_spectra(proteome, raw_file_folder, raw_file_name)
+    #plot_ms2_spectra(proteome, raw_file_folder, raw_file_name)
     #plot_ms1_spectra(unimod_file, proteome, raw_file_folder, raw_file_name)
+    create_ssl_data(raw_file_folder, raw_file_name)
 
 if __name__ == "__main__":
     main()
