@@ -8,12 +8,101 @@ import matplotlib.pyplot as plt
 from multiprocessing import Pool
 from pathlib import Path
 import platform
+from datetime import datetime
+
+import subprocess
+import os
+from datetime import datetime
+
+def run_skyline_docker_xic(raw_file_folder, proteome):
+    """
+    Runs SkylineCmd inside a Docker container with the provided raw_file_folder mounted as /data.
+    """
+    # Check if peptide_qc_results folder exists in the raw_file_folder and delete it
+    peptide_qc_results_folder = os.path.join(raw_file_folder, "peptide_qc_results")
+    if os.path.exists(peptide_qc_results_folder):
+        try:
+            print(f"Deleting existing folder: {peptide_qc_results_folder}...")
+            subprocess.run(["rm", "-rf", peptide_qc_results_folder], check=True)
+            print("Folder deleted successfully.")
+        except subprocess.CalledProcessError as e:
+            print(f"Error occurred while deleting the folder: {e}")
+    
+    # Check if _Skyline-template.skyd exists in the raw_file_folder and delete it
+    skyline_template_skyd = os.path.join(raw_file_folder, "_Skyline-template.skyd")
+    if os.path.exists(skyline_template_skyd):
+        try:
+            print(f"Deleting existing file: {skyline_template_skyd}...")
+            os.remove(skyline_template_skyd)
+            print("File deleted successfully.")
+        except OSError as e:
+            print(f"Error occurred while deleting the file: {e}")
+    # Copy the proteome file to the raw_file_folder
+    proteome_file_name = os.path.basename(proteome)
+    destination_path = os.path.join(raw_file_folder, os.path.basename(proteome))
+    if not os.path.exists(destination_path):
+        try:
+            print(f"Copying {proteome} to {destination_path}...")
+            subprocess.run(["cp", proteome, destination_path], check=True)
+            print("Proteome file copied successfully.")
+        except subprocess.CalledProcessError as e:
+            print(f"Error occurred while copying the proteome file: {e}")
+    else:
+        print(f"Proteome file already exists at {destination_path}.")
+    # Get timestamp for output naming
+    timestamp = datetime.now().strftime("%Y%m%d")
+
+    # Define output paths (inside the container /data maps to raw_file_folder)
+    output_sky = f"/data/peptide_qc_results/Skyline_Project_{timestamp}.sky"
+
+    # Ensure the output directory exists on the host system
+    output_dir = os.path.join(raw_file_folder, "peptide_qc_results")
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Define the SkylineCmd command to run inside the container
+    skyline_cmd = [
+        "wine", "SkylineCmd", "--timestamp",
+        "--dir=/data",
+        "--in=/data/_Skyline-template.sky",
+        "--save",
+        f"--out={output_sky}",
+        "--import-search-file=/data/ssl_output.ssl",
+        "--import-search-add-mods",
+        "--import-search-include-ambiguous",
+        f"--import-fasta=/data/{proteome_file_name}",
+        "--keep-empty-proteins",
+        "--import-threads=4",
+        "--refine-auto-select-peptides",
+        "--refine-auto-select-transitions",
+        "--refine-auto-select-precursors",
+        "--chromatogram-precursors",
+        "--chromatogram-file=/data/peptide_qc_results/XICs.tsv",
+        "--report-add=/data/_Skyline-report.skyr"
+    ]
+
+    # Construct the full Docker command
+    docker_cmd = [
+        "docker", "run", "-i", "--rm",
+        "-v", f"{raw_file_folder}:/data",
+        "chambm/pwiz-skyline-i-agree-to-the-vendor-licenses",
+        "bash", "-c", " ".join(skyline_cmd)
+    ]
+
+    # Run the command
+    try:
+        print("🚀 Launching SkylineCmd in Docker...")
+        subprocess.run(docker_cmd, check=True)
+        print("✅ SkylineCmd finished successfully.")
+    except subprocess.CalledProcessError as e:
+        print("❌ Error while running SkylineCmd inside Docker:")
+        print(e)
+
 
 
 def create_ssl_data(raw_file_folder, raw_file_name):
     raw_file = os.path.join(raw_file_folder, raw_file_name)
     filtered_hits_csv_file = raw_file.replace(".raw", "_filtered_hits.csv")
-    filtered_hits_csv_file_docker_version = f"Z:{raw_file_folder.replace('/', '\\\\')}\\\\{raw_file_name}"
+    filtered_hits_csv_file_docker_version = f"Z:\\\\data\\\\{raw_file_name}"
     filtered_hits_df = pd.read_csv(filtered_hits_csv_file)
     # Create ssl_df with required columns
     ssl_df = pd.DataFrame({
@@ -306,7 +395,7 @@ def main():
     print(f"XIC Plotting RT Cutoff: {rt_cutoff}")
     print(f"XIC Result File: {xic_result_file}")
 
-    run_skyline_script(skyline_path, raw_file_folder, raw_file_name, tic_result_file, tic_log_file)
+    #run_skyline_script(skyline_path, raw_file_folder, raw_file_name, tic_result_file, tic_log_file)
     #plot_tic_chromatograms(tic_result_file, tic_plot_file, raw_file_name)
     #run_msfragger_script(fragger_params,raw_file_folder, output_folder, proteome, fragger_path, contams_db)
     #read_process_msfragger_results(raw_file_folder, input_csv, raw_file_name, quality_filter, q_value_cutoff, engine_score_cutoff)
@@ -315,6 +404,7 @@ def main():
     #plot_ms2_spectra(proteome, raw_file_folder, raw_file_name)
     #plot_ms1_spectra(unimod_file, proteome, raw_file_folder, raw_file_name)
     #create_ssl_data(raw_file_folder, raw_file_name)
+    run_skyline_docker_xic(raw_file_folder, proteome)
 
 if __name__ == "__main__":
     main()
