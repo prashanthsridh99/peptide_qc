@@ -89,7 +89,7 @@ def convert_raw_to_mgf(scans_folder, n_cores=4):
     else:
         print(OKCYAN_TEXT + "No new files to convert." + ENDC_TEXT)
 
-def run_skyline_script(raw_file_folder, raw_file_name, tic_result_file, tic_log_file):
+def run_skyline_script(skyline_path, raw_file_folder, raw_file_name, tic_result_file, tic_log_file):
     """
     Runs the Skyline script with the given parameters.
 
@@ -104,6 +104,7 @@ def run_skyline_script(raw_file_folder, raw_file_name, tic_result_file, tic_log_
     """
     script_command = [
         "python3", "skyline.py",
+        "--skyline_path", skyline_path,
         "--raw_file_loc", raw_file_folder,
         "--raw_file", raw_file_name,
         "--result_file", tic_result_file,
@@ -253,6 +254,7 @@ def main():
     print(yaml.dump(config, default_flow_style=False))
 
     # Extract config values
+    skyline_path = config.get("skyline_path")
     input_csv = config.get("input_csv_file")
     raw_file_name = config.get("raw_file_name")
     raw_file_type = config.get("raw_file_type")
@@ -283,6 +285,7 @@ def main():
     
 
     # Print extracted values
+    print(f"skyline_path: {skyline_path}")
     print(f"Input CSV File: {input_csv}")
     print(f"Raw File Name: {raw_file_name}")
     print(f"Raw File Type: {raw_file_type}")
@@ -303,7 +306,7 @@ def main():
     print(f"XIC Plotting RT Cutoff: {rt_cutoff}")
     print(f"XIC Result File: {xic_result_file}")
 
-    #run_skyline_script(raw_file_folder, raw_file_name, tic_result_file, tic_log_file)
+    run_skyline_script(skyline_path, raw_file_folder, raw_file_name, tic_result_file, tic_log_file)
     #plot_tic_chromatograms(tic_result_file, tic_plot_file, raw_file_name)
     #run_msfragger_script(fragger_params,raw_file_folder, output_folder, proteome, fragger_path, contams_db)
     #read_process_msfragger_results(raw_file_folder, input_csv, raw_file_name, quality_filter, q_value_cutoff, engine_score_cutoff)
@@ -311,7 +314,7 @@ def main():
     #convert_raw_to_mzml(raw_file_folder, raw_file_name)
     #plot_ms2_spectra(proteome, raw_file_folder, raw_file_name)
     #plot_ms1_spectra(unimod_file, proteome, raw_file_folder, raw_file_name)
-    create_ssl_data(raw_file_folder, raw_file_name)
+    #create_ssl_data(raw_file_folder, raw_file_name)
 
 if __name__ == "__main__":
     main()

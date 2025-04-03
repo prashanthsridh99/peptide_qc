@@ -1,3 +1,4 @@
+skyline_path: "/data/Prashanth/final_python_project/Skyline"
 input_csv_file: "/data/Prashanth/input.csv" # (variable/user input)
 raw_file_folder: "/data/Prashanth/peptide_qc"
 raw_file_name: "WSoh_260722_260722_Goe_TSN140_190_10pmol_R1.raw"

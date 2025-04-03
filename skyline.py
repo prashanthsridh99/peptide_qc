@@ -10,6 +10,7 @@ import pandas as pd
 
 def main():
     parser = argparse.ArgumentParser(description="Run Skyline with input arguments.")
+    parser.add_argument("--skyline_path", type=str, required=True, help="Path to Skyline installation.")
     parser.add_argument("--raw_file_loc", type=str, required=True, help="Location of raw file.")
     parser.add_argument("--raw_file", type=str, required=True, help="Raw file name.")
     parser.add_argument("--result_file", type=str, required=True, help="Path to the result file.")
@@ -35,8 +36,8 @@ def main():
     # Copy necessary files
     os.makedirs(raw_file_loc, exist_ok=True)
     os.makedirs(os.path.dirname(result_file), exist_ok=True)
-    shutil.copy("/data/Prashanth/Skyline/_Skyline-template.sky", raw_file_loc)
-    shutil.copy("/data/Prashanth/Skyline/_Skyline-report.skyr", raw_file_loc)
+    shutil.copy(os.path.join(args.skyline_path, "_Skyline-template.sky"), raw_file_loc)
+    shutil.copy(os.path.join(args.skyline_path, "_Skyline-report.skyr"), raw_file_loc)
 
     # Set current date
     date = datetime.datetime.now().strftime("%Y%m%d")
