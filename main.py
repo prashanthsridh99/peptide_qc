@@ -66,12 +66,12 @@ def convert_raw_to_mgf(scans_folder, n_cores=4):
     else:
         print(OKCYAN_TEXT + "No new files to convert." + ENDC_TEXT)
 
-def run_skyline_script(raw_file_location, raw_file_name, tic_result_file, tic_log_file):
+def run_skyline_script(raw_file_folder, raw_file_name, tic_result_file, tic_log_file):
     """
     Runs the Skyline script with the given parameters.
 
     Parameters:
-    - raw_file_location (str): Path to the raw file location.
+    - raw_file_folder (str): Path to the raw file location.
     - raw_file_name (str): Name of the raw file.
     - tic_result_file (str): Path to the output TIC result file.
     - tic_log_file (str): Path to the log file.
@@ -81,7 +81,7 @@ def run_skyline_script(raw_file_location, raw_file_name, tic_result_file, tic_lo
     """
     script_command = [
         "python3", "skyline.py",
-        "--raw_file_loc", raw_file_location,
+        "--raw_file_loc", raw_file_folder,
         "--raw_file", raw_file_name,
         "--result_file", tic_result_file,
         "--log_file", tic_log_file
@@ -172,10 +172,10 @@ def read_process_msfragger_results(raw_file_folder, input_csv, raw_file_name, qu
     except subprocess.CalledProcessError as e:
         print(f"Error in processing MSFragger results: {e}")
 
-def convert_raw_to_mzml(raw_file_location, raw_file_name):
+def convert_raw_to_mzml(raw_file_folder, raw_file_name):
     command = [
         "docker", "run", "-it", "--rm",
-        "-v", f"{raw_file_location}:/data",
+        "-v", f"{raw_file_folder}:/data",
         "proteowizard/pwiz-skyline-i-agree-to-the-vendor-licenses",
         "wine", "msconvert", f"/data/{raw_file_name}", "-o", "/data"
     ]
@@ -185,6 +185,32 @@ def convert_raw_to_mzml(raw_file_location, raw_file_name):
         print(f"Successfully converted {raw_file_name} to mzML format.")
     except subprocess.CalledProcessError as e:
         print(f"Error occurred while converting RAW to mzML: {e}")
+
+def plot_ms2_spectra(proteome, raw_file_folder, raw_file_name):
+    command = [
+        "python3", "plot_ms2_spectra.py",
+        "--proteome", proteome,
+        "--raw_file_folder", raw_file_folder,
+        "--raw_file_name", raw_file_name
+    ]
+    try:
+        subprocess.run(command, check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred while plotting MS2 spectra: {e}")
+
+def plot_ms1_spectra(unimod_file, proteome, raw_file_folder, raw_file_name):
+    command = [
+        "python3", "plot_ms1_spectra.py",
+        "--unimod_file", unimod_file,
+        "--proteome", proteome,
+        "--raw_file_folder", raw_file_folder,
+        "--raw_file_name", raw_file_name
+    ]
+    try:
+        subprocess.run(command)
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred while plotting MS1 spectra: {e}")
+
 
 def main():
     parser = argparse.ArgumentParser(description="Process configuration for MSFragger and XIC Plotting.")
@@ -207,7 +233,8 @@ def main():
     input_csv = config.get("input_csv_file")
     raw_file_name = config.get("raw_file_name")
     raw_file_type = config.get("raw_file_type")
-    raw_file_location = config.get("raw_file_location")
+    raw_file_folder = config.get("raw_file_folder")
+    unimod_file = config.get("unimod_file")
    
     tic_plotting = config.get("TIC_Plotting", {})
     tic_result_file = tic_plotting.get("tic_result_file")
@@ -220,7 +247,6 @@ def main():
     engine_score_cutoff = msfragger_part.get("engine_score_cutoff", 10)
     msfragger_inputs = msfragger_part.get("MSFraggerFunctionInputs", {})
     fragger_params = msfragger_inputs.get("fragger_params")
-    raw_file_folder = msfragger_inputs.get("raw_file_folder")
     output_folder = msfragger_inputs.get("output_folder")
     proteome = msfragger_inputs.get("proteome")
     fragger_path = msfragger_inputs.get("fragger_path")
@@ -237,7 +263,8 @@ def main():
     print(f"Input CSV File: {input_csv}")
     print(f"Raw File Name: {raw_file_name}")
     print(f"Raw File Type: {raw_file_type}")
-    print(f"Raw File Location: {raw_file_location}")
+    print(f"Raw File Folder: {raw_file_folder}")
+    print(f"Unimod File: {unimod_file}")
     print(f"TIC Result File: {tic_result_file}")
     print(f"TIC Log File: {tic_log_file}")
     print(f"TIC Plot File: {tic_plot_file}")
@@ -245,7 +272,6 @@ def main():
     print(f"Q Value Cutoff: {q_value_cutoff}")
     print(f"Engine Score Cutoff: {engine_score_cutoff}")
     print(f"fragger_params: {fragger_params}")
-    print(f"Raw File Folder: {raw_file_folder}")
     print(f"Output Folder: {output_folder}")
     print(f"Proteome: {proteome}")
     print(f"Fragger Path: {fragger_path}")
@@ -254,12 +280,14 @@ def main():
     print(f"XIC Plotting RT Cutoff: {rt_cutoff}")
     print(f"XIC Result File: {xic_result_file}")
 
-    #run_skyline_script(raw_file_location, raw_file_name, tic_result_file, tic_log_file)
+    #run_skyline_script(raw_file_folder, raw_file_name, tic_result_file, tic_log_file)
     #plot_tic_chromatograms(tic_result_file, tic_plot_file, raw_file_name)
     #run_msfragger_script(fragger_params,raw_file_folder, output_folder, proteome, fragger_path, contams_db)
     #read_process_msfragger_results(raw_file_folder, input_csv, raw_file_name, quality_filter, q_value_cutoff, engine_score_cutoff)
-    #convert_raw_to_mgf(raw_file_location)
-    convert_raw_to_mzml(raw_file_location, raw_file_name)
+    #convert_raw_to_mgf(raw_file_folder)
+    #convert_raw_to_mzml(raw_file_folder, raw_file_name)
+    plot_ms2_spectra(proteome, raw_file_folder, raw_file_name)
+    #plot_ms1_spectra(unimod_file, proteome, raw_file_folder, raw_file_name)
 
 if __name__ == "__main__":
     main()

@@ -1,7 +1,8 @@
 input_csv_file: "/data/Prashanth/input.csv" # (variable/user input)
-raw_file_location: "/data/Prashanth/peptide_qc"
+raw_file_folder: "/data/Prashanth/peptide_qc"
 raw_file_name: "WSoh_260722_260722_Goe_TSN140_190_10pmol_R1.raw"
 raw_file_type: "individual"
+unimod_file: "/data/Prashanth/Unimod.csv" 
 
 TIC_Plotting:
   tic_result_file: "/data/Prashanth/TICs_new.tsv"
@@ -15,7 +16,6 @@ MSFraggerPart:
   engine_score_cutoff: 10 #(> specified value. defualt value = 10)
   MSFraggerFunctionInputs:
     fragger_params: "/data/Prashanth/peptide_qc_files/fragger_template.params"
-    raw_file_folder: "/data/Prashanth/peptide_qc" #(variable/user input)
     output_folder: "/data/Prashanth/peptide_qc_files_output" #(variable/user input)
     proteome: "/data/Prashanth/peptide_qc/input_final.fasta" #(variable/ use input)
     fragger_path: "/data/Prashanth/MSFragger-4.1/MSFragger-4.1.jar" #(Java Archive file containg MSFragger-4 application)
