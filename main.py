@@ -13,6 +13,8 @@ from datetime import datetime
 import subprocess
 import os
 from datetime import datetime
+from matplotlib.backends.backend_pdf import PdfPages
+
 
 def run_skyline_docker_xic(raw_file_folder, proteome):
     """
@@ -325,6 +327,55 @@ def plot_ms1_spectra(unimod_file, proteome, raw_file_folder, raw_file_name):
         print(f"Error occurred while plotting MS1 spectra: {e}")
 
 
+def plot_xic_chromatograms(raw_file_folder):
+    xic_file_path = os.path.join(raw_file_folder, "peptide_qc_results", "XICs.tsv")
+    if not os.path.exists(xic_file_path):
+        print(f"XIC file not found: {xic_file_path}")
+        return
+    print("Plotting XIC chromatograms...")
+    
+    # Reload the data with proper column names
+    columns = [
+        "FileName", "PeptideModifiedSequence", "PrecursorCharge", "ProductMz",
+        "FragmentIon", "ProductCharge", "IsotopeLabelType", "TotalArea", "Times", "Intensities"
+    ]
+
+    # Load and parse
+    data = pd.read_csv(xic_file_path, sep="\t", names=columns, skiprows=1)
+    data['Times'] = [list(map(float, str(x).split(','))) for x in data['Times']]
+    data['Intensities'] = [list(map(float, str(x).split(','))) for x in data['Intensities']]
+
+    # Group by peptide, charge, and mz
+    grouped = data.groupby(["PeptideModifiedSequence", "PrecursorCharge", "ProductMz"])
+
+    # Get unique peptides
+    unique_peptides = data["PeptideModifiedSequence"].unique()
+
+    # Create a PDF to store all plots
+    pdf_path = os.path.join(raw_file_folder, "XIC_chromatograms.pdf")
+    with PdfPages(pdf_path) as pdf:
+        for peptide in unique_peptides:
+            peptide_data = grouped.filter(lambda x: x["PeptideModifiedSequence"].iloc[0] == peptide)
+
+            plt.figure(figsize=(10, 6))
+            for (pep, charge, mz), group in peptide_data.groupby(["PeptideModifiedSequence", "PrecursorCharge", "ProductMz"]):
+                times = np.concatenate(group["Times"].values)
+                intensities = np.concatenate(group["Intensities"].values)
+                plt.plot(times, intensities, label=f"z={charge}, m/z={mz:.2f}")
+
+            plt.title(f"XICs for Peptide: {peptide}", fontsize=14)
+            plt.xlabel("Retention Time (min)", fontsize=12)
+            plt.ylabel("Intensity", fontsize=12)
+            plt.legend(fontsize=10, loc='upper right')
+            plt.grid(alpha=0.3)
+            plt.tight_layout()
+            pdf.savefig()
+            plt.close()
+
+    print(pdf_path)
+    print("XIC chromatograms plotted and saved to PDF.")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Process configuration for MSFragger and XIC Plotting.")
     parser.add_argument(
@@ -404,7 +455,8 @@ def main():
     #plot_ms2_spectra(proteome, raw_file_folder, raw_file_name)
     #plot_ms1_spectra(unimod_file, proteome, raw_file_folder, raw_file_name)
     #create_ssl_data(raw_file_folder, raw_file_name)
-    run_skyline_docker_xic(raw_file_folder, proteome)
+    #run_skyline_docker_xic(raw_file_folder, proteome)
+    plot_xic_chromatograms(raw_file_folder)
 
 if __name__ == "__main__":
     main()
